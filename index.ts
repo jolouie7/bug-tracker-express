@@ -1,14 +1,18 @@
 import express, { Express, Request, Response } from "express";
+import cors from "cors";
 import "dotenv/config";
 import passport from "passport";
-import bodyParser from "body-parser";
 
+// Import Routes
 import { UserRoute } from "./src/routes/User";
 
 const app: Express = express();
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(passport.initialize());
 const port = process.env.PORT;
+
+// cors middleware
+app.use(cors());
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Express + TypeScript Server!!");
