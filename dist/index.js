@@ -7,7 +7,7 @@ const express_1 = __importDefault(require("express"));
 require("dotenv/config");
 const passport_1 = __importDefault(require("passport"));
 const body_parser_1 = __importDefault(require("body-parser"));
-const user_controller_1 = __importDefault(require("./src/controllers/user.controller"));
+const User_1 = require("./src/routes/User");
 const app = (0, express_1.default)();
 app.use(body_parser_1.default.json());
 app.use(passport_1.default.initialize());
@@ -16,7 +16,11 @@ app.get("/", (req, res) => {
     res.send("Express + TypeScript Server!!");
 });
 // Routes
-app.use("/", user_controller_1.default);
+app.use("/", User_1.UserRoute);
+// Catch-all 404 route
+app.use("*", (req, res) => {
+    res.status(404).json({ message: "Not Found" });
+});
 app.listen(port, () => {
     console.log(`[server]: Server is running at http://localhost:${port}`);
 });

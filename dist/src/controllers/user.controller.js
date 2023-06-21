@@ -35,16 +35,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const client_1 = require("@prisma/client");
-const User = __importStar(require("../models/User"));
+exports.SignIn = exports.SignUp = void 0;
+const UserService = __importStar(require("../services/UserService"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const passport_1 = __importDefault(require("passport"));
 const passport_jwt_1 = require("passport-jwt");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 require("dotenv/config");
-const router = express_1.default.Router();
-const prisma = new client_1.PrismaClient();
 // Check if JWT_SECRET_KEY is defined in .env file. If not, terminate server
 if (!process.env.JWT_SECRET_KEY) {
     console.error("JWT_SECRET_KEY is not defined in .env file. Server cannot start without JWT_SECRET_KEY.");
@@ -56,7 +53,7 @@ const jwtOptions = {
 };
 // Passport middleware to authenticate user
 passport_1.default.use(new passport_jwt_1.Strategy(jwtOptions, (jwtPayload, done) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield User.findUser(jwtPayload.id);
+    const user = yield UserService.findUser(jwtPayload.id);
     if (user) {
         return done(null, user);
     }
@@ -64,20 +61,21 @@ passport_1.default.use(new passport_jwt_1.Strategy(jwtOptions, (jwtPayload, done
         return done(null, false);
     }
 })));
-router.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const SignUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { firstName, lastName, email, password } = req.body;
     try {
-        const user = yield User.createUser(firstName, lastName, email, password);
+        const user = yield UserService.createUser(firstName, lastName, email, password);
         res.json({ message: "User created successfully", user });
     }
     catch (error) {
         res.status(500).json({ error: "Failed to create the user" });
     }
-}));
-router.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.SignUp = SignUp;
+const SignIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = req.body;
     try {
-        const user = yield prisma.user.findUnique({ where: { email } });
+        const user = yield UserService.findUserByEmail(email);
         if (!user || !bcryptjs_1.default.compareSync(password, user.password)) {
             return res.status(401).json({ message: "Invalid credentials" });
         }
@@ -88,5 +86,5 @@ router.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, function*
     catch (error) {
         res.status(500).json({ error: "Error occurred during sign in" });
     }
-}));
-exports.default = router;
+});
+exports.SignIn = SignIn;
