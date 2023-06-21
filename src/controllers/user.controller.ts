@@ -1,14 +1,9 @@
-import express, { Router } from "express";
-import { PrismaClient } from "@prisma/client";
-import * as User from "../models/User";
+import * as UserService from "../services/UserService";
 import jwt from "jsonwebtoken";
 import passport from "passport";
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 import bcrypt from "bcryptjs";
 import "dotenv/config";
-
-const router: Router = express.Router();
-const prisma = new PrismaClient();
 
 // Check if JWT_SECRET_KEY is defined in .env file. If not, terminate server
 if (!process.env.JWT_SECRET_KEY) {
@@ -26,7 +21,7 @@ const jwtOptions = {
 // Passport middleware to authenticate user
 passport.use(
   new JwtStrategy(jwtOptions, async (jwtPayload, done) => {
-    const user = await User.findUser(jwtPayload.id);
+    const user = await UserService.findUser(jwtPayload.id);
     if (user) {
       return done(null, user);
     } else {
@@ -35,23 +30,41 @@ passport.use(
   })
 );
 
-router.post("/signup", async (req, res) => {
+export const SignUp = async (
+  req: {
+    body: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      password: string;
+    };
+  },
+  res: any
+) => {
   const { firstName, lastName, email, password } = req.body;
 
   try {
-    const user = await User.createUser(firstName, lastName, email, password);
+    const user = await UserService.createUser(
+      firstName,
+      lastName,
+      email,
+      password
+    );
 
     res.json({ message: "User created successfully", user });
   } catch (error) {
     res.status(500).json({ error: "Failed to create the user" });
   }
-});
+};
 
-router.post("/signin", async (req, res) => {
+export const SignIn = async (
+  req: { body: { email: string; password: string } },
+  res: any
+): Promise<void> => {
   const { email, password } = req.body;
 
   try {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await UserService.findUserByEmail(email);
 
     if (!user || !bcrypt.compareSync(password, user.password)) {
       return res.status(401).json({ message: "Invalid credentials" });
@@ -64,6 +77,4 @@ router.post("/signin", async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "Error occurred during sign in" });
   }
-});
-
-export default router;
+};
