@@ -1,4 +1,4 @@
-import * as UserService from "../services/UserService";
+import * as User from "../models/User";
 import jwt from "jsonwebtoken";
 import passport from "passport";
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
@@ -21,7 +21,7 @@ const jwtOptions = {
 // Passport middleware to authenticate user
 passport.use(
   new JwtStrategy(jwtOptions, async (jwtPayload, done) => {
-    const user = await UserService.findUser(jwtPayload.id);
+    const user = await User.findUser(jwtPayload.id);
     if (user) {
       return done(null, user);
     } else {
@@ -44,12 +44,7 @@ export const SignUp = async (
   const { firstName, lastName, email, password } = req.body;
 
   try {
-    const user = await UserService.createUser(
-      firstName,
-      lastName,
-      email,
-      password
-    );
+    const user = await User.createUser(firstName, lastName, email, password);
 
     res.json({ message: "User created successfully", user });
   } catch (error) {
@@ -64,7 +59,7 @@ export const SignIn = async (
   const { email, password } = req.body;
 
   try {
-    const user = await UserService.findUserByEmail(email);
+    const user = await User.findUserByEmail(email);
 
     if (!user || !bcrypt.compareSync(password, user.password)) {
       return res.status(401).json({ message: "Invalid credentials" });

@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SignIn = exports.SignUp = void 0;
-const UserService = __importStar(require("../services/UserService"));
+const User = __importStar(require("../models/User"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const passport_1 = __importDefault(require("passport"));
 const passport_jwt_1 = require("passport-jwt");
@@ -53,7 +53,7 @@ const jwtOptions = {
 };
 // Passport middleware to authenticate user
 passport_1.default.use(new passport_jwt_1.Strategy(jwtOptions, (jwtPayload, done) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield UserService.findUser(jwtPayload.id);
+    const user = yield User.findUser(jwtPayload.id);
     if (user) {
         return done(null, user);
     }
@@ -64,7 +64,7 @@ passport_1.default.use(new passport_jwt_1.Strategy(jwtOptions, (jwtPayload, done
 const SignUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { firstName, lastName, email, password } = req.body;
     try {
-        const user = yield UserService.createUser(firstName, lastName, email, password);
+        const user = yield User.createUser(firstName, lastName, email, password);
         res.json({ message: "User created successfully", user });
     }
     catch (error) {
@@ -75,7 +75,7 @@ exports.SignUp = SignUp;
 const SignIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = req.body;
     try {
-        const user = yield UserService.findUserByEmail(email);
+        const user = yield User.findUserByEmail(email);
         if (!user || !bcryptjs_1.default.compareSync(password, user.password)) {
             return res.status(401).json({ message: "Invalid credentials" });
         }
