@@ -4,7 +4,7 @@ import "dotenv/config";
 import passport from "passport";
 
 // Import Routes
-import { UserRoute } from "./src/routes/User";
+import { UserRoute } from "./src/api/routes/User";
 
 const app: Express = express();
 app.use(express.json());
